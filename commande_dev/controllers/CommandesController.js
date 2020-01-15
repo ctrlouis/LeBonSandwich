@@ -2,7 +2,7 @@
 
 import * as Database from './Database.js';
 import Error from './Error.js';
-// import uuid from 'uuid/v1';
+import uuid from 'uuid/v1.js';
 
 
 const db = Database.connect();
@@ -25,14 +25,37 @@ class CommandesController {
             .then((result) => {
                 // if no ressource catch
                 if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-                res.json(result[0]);
+                res.json(result);
             })
             .catch((error) => console.error(error));
     }
 
     static create(req, res) {
-        // res.send(uuid());
-        res.send("test");
+
+        const insertData = {
+            id: uuid(),
+            nom: req.body.name,
+            mail: req.body.mail,
+            livraison: req.body.delivery,
+            created_at: new Date(),
+            updated_at: new Date()
+        };
+
+        db.insert(insertData).into(table)
+        .then((result) => {
+            res.status(201).redirect(201, '/commandes/' + insertData.id);
+            // // return created object
+            // db.select()
+            //     .table(table)
+            //     .where('id', insertData.id)
+            //     .then((result) => {
+            //         // if no ressource catch
+            //         if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+            //         res.status(201).json(result);
+            //     })
+            //     .catch((error) => console.error(error));
+        })
+        .catch((error) => res.status(500).json(Error.create(500, error)));
     }
 
 }
