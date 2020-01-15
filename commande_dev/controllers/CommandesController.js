@@ -34,26 +34,26 @@ class CommandesController {
 
         const insertData = {
             id: uuid(),
-            nom: req.body.name,
+            nom: req.body.nom,
             mail: req.body.mail,
-            livraison: req.body.delivery,
+            livraison: req.body.livraison,
             created_at: new Date(),
             updated_at: new Date()
         };
 
         db.insert(insertData).into(table)
         .then((result) => {
-            res.status(201).redirect(201, '/commandes/' + insertData.id);
-            // // return created object
-            // db.select()
-            //     .table(table)
-            //     .where('id', insertData.id)
-            //     .then((result) => {
-            //         // if no ressource catch
-            //         if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-            //         res.status(201).json(result);
-            //     })
-            //     .catch((error) => console.error(error));
+            // res.redirect(201, '/commandes/' + insertData.id);
+            db.select()
+                .table(table)
+                .where('id', insertData.id)
+                .then((result) => {
+                    // if no ressource catch
+                    if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+                    // else
+                    res.status(201).location('/commandes/' + insertData.id).json(result);
+                })
+                .catch((error) => console.error(error));
         })
         .catch((error) => res.status(500).json(Error.create(500, error)));
     }
