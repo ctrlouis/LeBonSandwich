@@ -10,6 +10,9 @@ const table = 'commande';
 
 class CommandesController {
 
+    /*
+     * Get all
+     */
     static all(req, res) {
         db.select().table(table)
             .then((result) => {
@@ -18,6 +21,9 @@ class CommandesController {
             .catch((error) => res.status(500).json(Error.create(500, error)));
     }
 
+    /*
+     * Get by id
+     */
     static id(req, res) {
         db.select()
             .table(table)
@@ -30,6 +36,9 @@ class CommandesController {
             .catch((error) => console.error(error));
     }
 
+    /*
+     * Create
+     */
     static create(req, res) {
 
         const insertData = {
