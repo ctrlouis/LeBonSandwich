@@ -5,9 +5,9 @@ import Error from './Error.js';
 
 
 const db = Database.connect();
-const table = 'item';
+const table = 'client';
 
-class ItemsController {
+class ClientsController {
 
     static all(req, res) {
         db.select().table(table)
@@ -31,4 +31,4 @@ class ItemsController {
 
 }
 
-export default ItemsController;
+export default ClientsController;
