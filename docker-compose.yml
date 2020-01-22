@@ -15,7 +15,7 @@ services:
         volumes:
             - ./commande_dev:/app/commande_api
         working_dir: /app/commande_api
-        command:     npm start
+        command:     bash -c "npm i && npm start"
         networks:
             - lbs.net
         links:
@@ -31,7 +31,7 @@ services:
         volumes:
             - ./commande_dev:/app/catalogue_api
         working_dir: /app/catalogue_api
-        # command:     npm start
+        # command:     bash -c "npm i && npm start"
         networks:
             - lbs.net
         links:
@@ -47,7 +47,7 @@ services:
         volumes:
             - ./commande_dev:/app/suivie_api
         working_dir: /app/suivie_api
-        # command:     npm start
+        # command:     bash -c "npm i && npm start"
         networks:
             - lbs.net
         links:
