@@ -18,6 +18,7 @@ import { dirname} from 'path';
 import { fileURLToPath } from 'url';
 
 import indexRouter      from './routes/indexRouter.js';
+import clientsRouter    from './routes/clientsRouter.js';
 import commandesRouter  from './routes/commandesRouter.js';
 import itemsRouter      from './routes/itemsRouter.js';
 import Error            from './controllers/Error.js';
@@ -48,6 +49,7 @@ app.use(bodyParser({ extended: false }));
  * ROUTES
  */
 app.use('/', indexRouter);
+app.use('/clients', clientsRouter);
 app.use('/commandes', commandesRouter);
 app.use('/items', itemsRouter);
 
