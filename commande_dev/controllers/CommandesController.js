@@ -16,7 +16,11 @@ class CommandesController {
     static all(req, res) {
         db.select().table(table)
             .then((result) => {
-                res.json(result);
+                let collec = {type: "collection", count: result.length, commandes: []};
+                result.forEach(commande => {
+                    collec.commandes.push({id: commande.id, mail_client: commande.mail, date_commande: commande.created_at, montant: commande.montant})
+                });
+                res.json(collec);
             })
             .catch((error) => res.status(500).json(Error.create(500, error)));
     }
@@ -31,7 +35,11 @@ class CommandesController {
             .then((result) => {
                 // if no ressource catch
                 if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-                res.json(result);
+                let collec = {type: "ressource", commande: []};
+                result.forEach(cmd => {
+                    collec.commande.push({id: cmd.id, mail_client: cmd.mail, nom_client: cmd.nom, date_commande: cmd.created_at, date_livraison: cmd.livraison, montant: cmd.montant})
+                });
+                res.json(collec);
             })
             .catch((error) => console.error(error));
     }
