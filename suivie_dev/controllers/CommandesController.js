@@ -22,7 +22,9 @@ class CommandesController {
                     commandes: []
                 }
 
-                result.forEach((commande) => {
+                const filterData = CommandesController.query(req, result);
+
+                filterData.forEach((commande) => {
                     collection.commandes.push( {
                         command: {
                             id: commande.id,
@@ -42,6 +44,14 @@ class CommandesController {
                 res.json(collection);
             })
             .catch((error) => res.status(500).json(Error.create(500, error)));
+    }
+
+    static query(req, data) {
+        if (req.query.s) {
+            data = data.filter( e => e.status == req.query.s);
+        }
+
+        return data;
     }
 
 }
