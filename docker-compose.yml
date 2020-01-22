@@ -29,13 +29,13 @@ services:
         ports:
             - "19081:8080"
         volumes:
-            - ./commande_dev:/app/catalogue_api
+            - ./catalogue_dev:/app/catalogue_api
         working_dir: /app/catalogue_api
-        # command:     bash -c "npm i && npm start"
+        command:     bash -c "npm i && npm start"
         networks:
             - lbs.net
         links:
-            - mysql.commande:dbcom
+            - mongo.catalogue
 
     api.suivie:
         image:       node
@@ -68,20 +68,20 @@ services:
         volumes:
             - ./commande_api/sql:/var/sql
 
-    mysql.catalogue:
-        image:       mariadb:latest
-        command:     --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
+    mongo.catalogue:
+        image: 'mongo'
         environment:
-            - MYSQL_ROOT_PASSWORD=comroot123
-            - MYSQL_USER=catalogue_lbs
-            - MYSQL_PASSWORD=catalogue_lbs
-            - MYSQL_DATABASE=catalogue_lbs
+          - MONGO_INITDB_DATABASE=catalogue_lbs
+          - MONGO_INITDB_USERNAME=root
+          - MONGO_INITDB_PASSWORD=rootpassword
+        volumes:
+          - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+          - ./catalogue_api:/data/db
         ports:
-            - "3308:3306"
+          - '27017-27018:27017-27018'
         networks:
             - lbs.net
-        volumes:
-            - ./catalogue_api/sql:/var/sql
+
 
     mysql.suivie:
         image:       mariadb:latest
@@ -106,5 +106,18 @@ services:
             - lbs.net
         links:
             - mysql.commande:command
-            - mysql.catalogue:catalogue
             - mysql.suivie:suivie
+
+    mongo-express:
+        image: mongo-express
+        restart: always
+        links:
+          - mongo.catalogue
+        ports:
+          - '5050:8081'
+        networks:
+            - lbs.net
+        environment:
+          ME_CONFIG_MONGODB_ADMINUSERNAME: root
+          ME_CONFIG_MONGODB_ADMINPASSWORD: rootpassword
+          ME_CONFIG_MONGODB_SERVER: 'mongo.catalogue'
