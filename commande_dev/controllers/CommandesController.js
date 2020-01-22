@@ -75,45 +75,28 @@ class CommandesController {
         db(table)
             .where('id', req.params.id)
             .update({
-                "updated_at": new Date()
+                "updated_at": new Date(),
+                "livraison": new Date(req.body.livraison),
+                "nom": req.body.nom,
+                "mail": req.body.mail,
+                "montant": req.body.montant,
+                "remise": req.body.remise,
+                "token": req.body.token,
+                "cliend_id": req.body.cliend_id,
+                "ref_paiement": req.body.ref_paiement,
+                "date_paiement": req.body.date_paiement == null ? null : new Date(req.body.date_paiement),
+                "mode_paiement": req.body.mode_paiement,
+                "status": req.body.status
             })
             .then((result) => {
                 if (result <= 0) res.status(404).json(Error.create(404, "Ressource not updated: " + req.originalUrl));
-                res.status(201).json();
+                db.select()
+                    .table(table)
+                    .where('id', req.params.id)
+                    .then((result) =>{
+                        res.status(201).location('/commandes/' + req.params.id).json(result);
+                    })
             }).catch((error) => console.error(error));
-
-
-        db.select()
-            .table(table)
-            .where('id', req.params.id)
-            .then((result) => {
-                // if no ressource catch
-                if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-                // else UPDATE OBJECT
-                console.log(result);
-            })
-            .catch((error) => console.error(error));
-
-        // db.select()
-        //     .table(table)
-        //     .where('id', req.params.id)
-        //     .then((result) => {
-        //         // if no ressource catch
-        //         if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-        //         // else UPDATE OBJECT
-        //         let updatedCommande = result[0];
-        //         updatedCommande.updated_at = new Date();
-        //
-        //         db(table)
-        //             .where('id', req.params.id)
-        //             .update(updatedCommande)
-        //             .then((result) => {
-        //                 if (result <= 0) res.status(404).json(Error.create(404, "Ressource not updated: " + req.originalUrl));
-        //                 res.status(201).json(updatedCommande);
-        //             }).catch((error) => console.error(error));
-        //
-        //     })
-        //     .catch((error) => console.error(error));
     }
 
 }
