@@ -16,7 +16,30 @@ class CommandesController {
     static all(req, res) {
         db.select().table(table)
             .then((result) => {
-                res.json(result);
+                let collection = {
+                    type: "collection",
+                    count: result.length,
+                    commandes: []
+                }
+
+                result.forEach((commande) => {
+                    collection.commandes.push( {
+                        command: {
+                            id: commande.id,
+                            nom: commande.nom,
+                            create_at: commande.create_at,
+                            livraison: commande.livraison.toLocaleDateString('fr-FR', ) + " " + commande.livraison.toLocaleTimeString('fr-FR', ),
+                            status: commande.status
+                        },
+                        links: {
+                            self: {
+                                href: "/commands/" + commande.id
+                            }
+                        }
+                    });
+                });
+
+                res.json(collection);
             })
             .catch((error) => res.status(500).json(Error.create(500, error)));
     }
