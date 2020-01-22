@@ -45,9 +45,9 @@ services:
         ports:
             - "19082:8080"
         volumes:
-            - ./commande_dev:/app/suivie_api
+            - ./suivie_dev:/app/suivie_api
         working_dir: /app/suivie_api
-        # command:     bash -c "npm i && npm start"
+        command:     bash -c "npm i && npm start"
         networks:
             - lbs.net
         links:
