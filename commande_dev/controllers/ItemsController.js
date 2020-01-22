@@ -2,7 +2,6 @@
 
 import * as Database from './Database.js';
 import Error from './Error.js';
-// import uuid from 'uuid/v1';
 
 
 const db = Database.connect();
@@ -28,11 +27,6 @@ class ItemsController {
                 res.json(result[0]);
             })
             .catch((error) => console.error(error));
-    }
-
-    static create(req, res) {
-        // res.send(uuid());
-        res.send("test");
     }
 
 }

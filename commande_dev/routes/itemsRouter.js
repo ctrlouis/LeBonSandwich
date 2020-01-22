@@ -10,9 +10,6 @@ const router = express.Router();
 /* GET commandes listing. */
 router.get('/',     ItemsController.all);
 
-/* POST Create commande */
-router.post('/',    ItemsController.create);
-
 /* GET commande by given id. */
 router.get('/:id',  ItemsController.id);
 
