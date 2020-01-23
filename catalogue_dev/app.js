@@ -18,6 +18,7 @@ import { dirname} from 'path';
 import { fileURLToPath } from 'url';
 
 import indexRouter      from './routes/indexRouter.js';
+import categorieRouter  from './routes/categorieRouter.js';
 import Error            from './controllers/Error.js';
 
 
@@ -46,6 +47,8 @@ app.use(bodyParser({ extended: false }));
  * ROUTES
  */
 app.use('/', indexRouter);
+app.use('/categories', categorieRouter);
+
 /* ERROR handler */
 app.all('/*', (req, res) => res.status(404).json(Error.create(404, "Method not allowed")));
 
