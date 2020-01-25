@@ -15,14 +15,20 @@ class CommandesController {
      * Get all
      */
     static all(req, res) {
-        db.table(table).count('id as count')
-            .then((rowNumber) => {
+        let countQuery = db.table(table).count('id as count');
+
+        countQuery = CommandesController.filter(req, countQuery);
+
+        countQuery.then((rowNumber) => {
 
                 const pagination = CommandesController.pagination(req, rowNumber[0].count);
-                db.select('*').from(table)
+                let query = db.select('*').from(table)
                     .limit(pagination.size)
-                    .offset(pagination.queryOffset)
-                    .then((result) => {
+                    .offset(pagination.queryOffset);
+
+                query = CommandesController.filter(req, query);
+
+                query.then((result) => {
 
                         // init collection with meta data
                         let collection = {
@@ -35,11 +41,8 @@ class CommandesController {
                         // add pagination metadata
                         collection.links = Pagination.getLinks(pagination, "/commands");
 
-                        // filter collection
-                        const filterData = CommandesController.filter(req, result);
-
                         // add data into collection
-                        filterData.forEach((commande) => {
+                        result.forEach((commande) => {
                             collection.commandes.push({
                                 command: {
                                     id: commande.id,
@@ -63,13 +66,13 @@ class CommandesController {
             });
     }
 
-    static filter(req, data) {
+    static filter(req, query) {
         // filter by status value
         if (req.query.s) {
-            data = data.filter(e => e.status == req.query.s);
+            query.where('status', req.query.s);
         }
 
-        return data;
+        return query;
     }
 
     static pagination(req, rowNumber) {
