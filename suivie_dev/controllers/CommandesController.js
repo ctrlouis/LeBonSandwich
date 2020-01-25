@@ -56,6 +56,7 @@ class CommandesController {
                                     self: {
                                         href: "/commands/" + commande.id
                                     }
+                                    href: "/commandes/" + commande.id
                                 }
                             });
                         });
