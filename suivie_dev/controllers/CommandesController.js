@@ -22,6 +22,7 @@ class CommandesController {
         countQuery.then((rowNumber) => {
 
                 const pagination = CommandesController.pagination(req, rowNumber[0].count);
+
                 let query = db.select('*').from(table)
                     .limit(pagination.size)
                     .offset(pagination.queryOffset);
