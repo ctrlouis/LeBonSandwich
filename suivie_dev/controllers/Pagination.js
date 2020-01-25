@@ -50,7 +50,7 @@ class Pagination {
 
         // previous page number
         pagination.previous = queryPage - 1;
-        if (pagination.previous < 1) pagination.previous = null;
+        if (pagination.previous < 0) pagination.previous = null;
 
         // next page number
         pagination.next = 1 + parseFloat(queryPage);
@@ -62,14 +62,14 @@ class Pagination {
     static getLinks(pagination, uri) {
         let links = {};
 
+        if (pagination.previous != null) {
+            links.prev = {};
+            links.prev.href = uri + "?page=" + pagination.previous + "&size=" + pagination.size;
+        }
+
         if (pagination.next) {
             links.next = {};
             links.next.href = uri + "?page=" + pagination.next + "&size=" + pagination.size;
-        }
-
-        if (pagination.previous) {
-            links.prev = {};
-            links.prev.href = uri + "?page=" + pagination.previous + "&size=" + pagination.size;
         }
 
         links.first = {};
