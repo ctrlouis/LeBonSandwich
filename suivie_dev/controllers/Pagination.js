@@ -53,7 +53,7 @@ class Pagination {
         if (pagination.previous < 1) pagination.previous = null;
 
         // next page number
-        pagination.next = queryPage + 1;
+        pagination.next = 1 + parseFloat(queryPage);
         if (pagination.next > maxPageNumber) pagination.next = null;
 
         return pagination;
