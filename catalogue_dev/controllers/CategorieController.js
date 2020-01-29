@@ -14,7 +14,7 @@ class CategorieController {
         ConnectionFactory.connect();
         CategorieModel.find({}, function(err, categories) {
             if (err) return handleError(err);
-            res.json(lots);
+            res.json(categories);
         });
     }
 
