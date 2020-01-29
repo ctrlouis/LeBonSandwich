@@ -70,7 +70,7 @@ class CommandesController {
                         // else
                         res.status(201).location('/commandes/' + insertData.id).json(result);
                     })
-                    .catch((error) => console.error(error));
+                    .catch((error) => res.status(500).json(Error.create(500, error)));
             })
             .catch((error) => res.status(500).json(Error.create(500, error)));
     }
@@ -104,7 +104,7 @@ class CommandesController {
                     .then((result) =>{
                         res.status(201).location('/commandes/' + req.params.id).json(result);
                     })
-            }).catch((error) => console.error(error));
+            }).catch((error) => res.status(500).json(Error.create(500, error)));
     }
 
 }
