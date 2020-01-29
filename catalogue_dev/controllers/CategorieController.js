@@ -39,6 +39,30 @@ class CategorieController {
             res.json(objet);
         });
     }
+
+    /*
+     * Create
+     */
+    static create(req, res) {
+        ConnectionFactory.connect();
+        var id;
+        CategorieModel.find({}, function(err, categories){
+            id = Math.max.apply(Math, categories.map(function(o){return o.id}))
+            console.log(id);
+        }).then(() => {
+            let categorie = new CategorieModel({
+              id: id + 1,
+              nom: req.body.nom,
+              description: req.body.description
+            });
+            categorie.save((err) =>{
+                if(err)
+                    res.json(err);
+                else
+                    res.json(categorie);
+            })
+        });
+    }
 }
 
 export default CategorieController;
