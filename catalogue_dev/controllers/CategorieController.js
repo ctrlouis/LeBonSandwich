@@ -47,8 +47,12 @@ class CategorieController {
         ConnectionFactory.connect();
         var id;
         CategorieModel.find({}, function(err, categories){
-            id = Math.max.apply(Math, categories.map(function(o){return o.id}))
-            console.log(id);
+            if(categories.length > 0){
+                id = Math.max.apply(Math, categories.map(function(o){return o.id}))
+            }
+            else{
+                id = 0;
+            }
         }).then(() => {
             let categorie = new CategorieModel({
               id: id + 1,
