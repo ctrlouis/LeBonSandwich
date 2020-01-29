@@ -25,5 +25,5 @@ http://localhost:8080/?server=mysql.commande&username=command_lbs&db=command_lbs
 ```
 docker exec -it [CONTAINER_SHA1] /bin/bash
 
-bash -c "mongoimport --db catalogue_lbs --collection categories --file tmp/categories.json --jsonArray && mongoimport --db catalogue_lbs --collection sandwichs --file tmp/sandwichs.json --jsonArray"
+mongoimport --db catalogue_lbs --collection categories --file /init/categories.json --jsonArray && mongoimport --db catalogue_lbs --collection sandwichs --file /init/sandwichs.json --jsonArray
 ```

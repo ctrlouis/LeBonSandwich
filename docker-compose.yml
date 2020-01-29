@@ -1,12 +1,12 @@
-version:             "3"
+version:                                   "3"
 
 networks:
     lbs.net:
-        driver:      bridge
+        driver:                            bridge
 
 services:
     api.commande:
-        image:       node
+        image:                             node
         environment:
             - NODE_ENV=dev
             - VHOST_HOSTNAME=api.commande.local
@@ -14,15 +14,15 @@ services:
             - "19080:8080"
         volumes:
             - ./commande_dev:/app/commande_api
-        working_dir: /app/commande_api
-        command:     bash -c "npm i && npm start"
+        working_dir:                       /app/commande_api
+        command:                           bash -c "npm i && npm start"
         networks:
             - lbs.net
         links:
             - mysql.commande:dbcom
 
     api.catalogue:
-        image:       node
+        image:                             node
         environment:
             - NODE_ENV=dev
             - VHOST_HOSTNAME=api.catalogue.local
@@ -30,15 +30,15 @@ services:
             - "19081:8080"
         volumes:
             - ./catalogue_dev:/app/catalogue_api
-        working_dir: /app/catalogue_api
-        command:     bash -c "npm i && npm start"
+        working_dir:                       /app/catalogue_api
+        command:                           bash -c "npm i && npm start"
         networks:
             - lbs.net
         links:
             - mongo.catalogue
 
     api.suivie:
-        image:       node
+        image:                             node
         environment:
             - NODE_ENV=dev
             - VHOST_HOSTNAME=api.suivie.local
@@ -46,16 +46,16 @@ services:
             - "19082:8080"
         volumes:
             - ./suivie_dev:/app/suivie_api
-        working_dir: /app/suivie_api
-        command:     bash -c "npm i && npm start"
+        working_dir:                       /app/suivie_api
+        command:                           bash -c "npm i && npm start"
         networks:
             - lbs.net
         links:
             - mysql.commande:dbcom
 
     mysql.commande:
-        image:       mariadb:latest
-        command:     --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
+        image:                             mariadb:latest
+        command:                           --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
         environment:
             - MYSQL_ROOT_PASSWORD=comroot123
             - MYSQL_USER=command_lbs
@@ -69,24 +69,24 @@ services:
             - ./commande_api/sql:/var/sql
 
     mongo.catalogue:
-        image: 'mongo'
+        image:                             'mongo'
         environment:
           - MONGO_INITDB_DATABASE=catalogue_lbs
           - MONGO_INITDB_USERNAME=root
           - MONGO_INITDB_PASSWORD=rootpassword
         volumes:
           - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-          - ./catalogue_api/data:/tmp
+          - ./catalogue_api/data:/init
           - ./catalogue_api/mongo-volume:/data/db
         ports:
-          - '27017-27018:27017-27018'
+          - '27027-27029:27017-27019'
         networks:
             - lbs.net
 
 
     mysql.suivie:
-        image:       mariadb:latest
-        command:     --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
+        image:                             mariadb:latest
+        command:                           --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
         environment:
             - MYSQL_ROOT_PASSWORD=comroot123
             - MYSQL_USER=suivie_lbs
@@ -100,7 +100,7 @@ services:
             - ./suivie_api/sql:/var/sql
 
     adminer:
-        image:       adminer
+        image:                             adminer
         ports:
             - "8080:8080"
         networks:
@@ -110,15 +110,15 @@ services:
             - mysql.suivie:suivie
 
     mongo-express:
-        image: mongo-express
-        restart: always
+        image:                             mongo-express
+        restart:                           always
         links:
           - mongo.catalogue
         ports:
-          - '5050:8081'
+          - '8081:8081'
         networks:
             - lbs.net
         environment:
           ME_CONFIG_MONGODB_ADMINUSERNAME: root
           ME_CONFIG_MONGODB_ADMINPASSWORD: rootpassword
-          ME_CONFIG_MONGODB_SERVER: 'mongo.catalogue'
+          ME_CONFIG_MONGODB_SERVER:        'mongo.catalogue'
