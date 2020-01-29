@@ -19,3 +19,11 @@ http://localhost:8080/?server=mysql.commande&username=command_lbs&db=command_lbs
 - database: command_lbs
 
 4. Importer le fichier `commande_api/sql/schema.sql` dans la base de données command_lbs
+
+5.Importer la base de données dans la base mongo pour l'API catalogue
+
+```
+docker exec -it [CONTAINER_SHA1] /bin/bash
+
+bash -c "mongoimport --db catalogue_lbs --collection categories --file tmp/categories.json --jsonArray && mongoimport --db catalogue_lbs --collection sandwichs --file tmp/sandwichs.json --jsonArray"
+```

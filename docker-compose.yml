@@ -76,7 +76,8 @@ services:
           - MONGO_INITDB_PASSWORD=rootpassword
         volumes:
           - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-          - ./catalogue_api:/data/db
+          - ./catalogue_api/data:/tmp
+          - ./catalogue_api/mongo-volume:/data/db
         ports:
           - '27017-27018:27017-27018'
         networks:
