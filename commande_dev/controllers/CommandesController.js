@@ -150,6 +150,22 @@ class CommandesController {
             }).catch((error) => res.status(500).json(Error.create(500, error)));
     }
 
+    static checkToken(givenToken, correctTokken) {
+        return givenToken == correctTokken;
+    }
+
+    static getToken(req) {
+        if (req.query.token) {
+            return req.query.token;
+        }
+
+        if (req.headers.token) {
+            return req.headers.token;
+        }
+
+        return null;
+    }
+
 }
 
 export default CommandesController;
