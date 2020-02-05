@@ -50,6 +50,12 @@ class CommandesController {
             .then((result) => {
                 // if no ressource catch
                 if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+
+                const givenToken = CommandesController.getToken(req);
+                if (!CommandesController.checkToken(givenToken, result[0].token)) {
+                    res.status(401).json(Error.create(401, "Wrong access token " + givenToken));
+                }
+
                 let collec = {
                     type: "ressource",
                     commande: []
