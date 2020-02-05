@@ -29,14 +29,18 @@ class CategorieController {
             links: {}
         };
         ConnectionFactory.connect();
-        CategorieModel.findOne({id: Number(req.params.id)}, function(err, categorie){
-            if (err) return handleError(err);
-            objet.categorie.id = categorie.id;
-            objet.categorie.nom = categorie.nom;
-            objet.categorie.description = categorie.description;
-            objet.links.sandwichs = {href: "/categories/" + categorie.id + "/sandwichs/"};
-            objet.links.self = {href: "/categories/" + categorie.id + "/"};
-            res.json(objet);
+        CategorieModel.findOne({id: Number(req.params.id)}, function(categorie){
+            if (categorie){
+              objet.categorie.id = categorie.id;
+              objet.categorie.nom = categorie.nom;
+              objet.categorie.description = categorie.description;
+              objet.links.sandwichs = {href: "/categories/" + categorie.id + "/sandwichs/"};
+              objet.links.self = {href: "/categories/" + categorie.id + "/"};
+              res.json(objet);
+            }
+            else{
+              res.send(Error.create(404, 'Ressource introuvable.'))
+            }
         });
     }
 
