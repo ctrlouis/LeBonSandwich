@@ -18,7 +18,11 @@ class CommandesController {
             .then((result) => {
                 let collec = {type: "collection", count: result.length, commandes: []};
                 result.forEach(commande => {
-                    collec.commandes.push({id: commande.id, mail_client: commande.mail, date_commande: commande.created_at, montant: commande.montant})
+                    collec.commandes.push({
+                        id: commande.id,
+                        mail_client: commande.mail,
+                        date_commande: new Date(commande.created_at).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year:'numeric'}),
+                        montant: commande.montant})
                 });
                 res.json(collec);
             })
