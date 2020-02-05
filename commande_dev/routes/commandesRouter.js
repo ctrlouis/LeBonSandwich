@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 /* GET commandes listing. */
-router.get('/',     CommandesController.all);
+router.get('/',     CommandesController.all); 
 
 /* GET commande by given id. */
 router.get('/:id',  CommandesController.id);
