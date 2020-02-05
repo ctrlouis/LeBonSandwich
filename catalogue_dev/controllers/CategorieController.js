@@ -29,7 +29,8 @@ class CategorieController {
             links: {}
         };
         ConnectionFactory.connect();
-        CategorieModel.findOne({id: Number(req.params.id)}, function(categorie){
+        CategorieModel.findOne({id: Number(req.params.id)}, function(err, categorie){
+          console.log(categorie)
             if (categorie){
               objet.categorie.id = categorie.id;
               objet.categorie.nom = categorie.nom;
@@ -39,7 +40,7 @@ class CategorieController {
               res.json(objet);
             }
             else{
-              res.send(Error.create(404, 'Ressource introuvable.'))
+              res.status(404).send(Error.create(404, 'Ressource introuvable.'))
             }
         });
     }
