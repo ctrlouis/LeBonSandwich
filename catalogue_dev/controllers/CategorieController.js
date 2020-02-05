@@ -30,13 +30,18 @@ class CategorieController {
         };
         ConnectionFactory.connect();
         CategorieModel.findOne({id: Number(req.params.id)}, function(err, categorie){
-            if (err) return handleError(err);
-            objet.categorie.id = categorie.id;
-            objet.categorie.nom = categorie.nom;
-            objet.categorie.description = categorie.description;
-            objet.links.sandwichs = {href: "/categories/" + categorie.id + "/sandwichs/"};
-            objet.links.self = {href: "/categories/" + categorie.id + "/"};
-            res.json(objet);
+          console.log(categorie)
+            if (categorie){
+              objet.categorie.id = categorie.id;
+              objet.categorie.nom = categorie.nom;
+              objet.categorie.description = categorie.description;
+              objet.links.sandwichs = {href: "/categories/" + categorie.id + "/sandwichs/"};
+              objet.links.self = {href: "/categories/" + categorie.id + "/"};
+              res.json(objet);
+            }
+            else{
+              res.status(404).send(Error.create(404, 'Ressource introuvable.'))
+            }
         });
     }
 
@@ -47,8 +52,12 @@ class CategorieController {
         ConnectionFactory.connect();
         var id;
         CategorieModel.find({}, function(err, categories){
-            id = Math.max.apply(Math, categories.map(function(o){return o.id}))
-            console.log(id);
+            if(categories.length > 0){
+                id = Math.max.apply(Math, categories.map(function(o){return o.id}))
+            }
+            else{
+                id = 0;
+            }
         }).then(() => {
             let categorie = new CategorieModel({
               id: id + 1,
