@@ -29,6 +29,25 @@ class ItemsController {
             .catch((error) => console.error(error));
     }
 
+    static itemsBelongsTo(req, res){
+        db.select()
+        .table(table)
+        .where('command_id', req.params.id)
+        .then((result) => {
+            if(result <= 0)
+                res.status(404).json(Error.create(404, "Ressources not available " + req.originalUrl));
+            else{
+                let collec = {type: "collection", commande: req.params.id, items: []};
+                result.forEach((item, i) => {
+                    collec.items.push({uri: item.uri, libelle: item.libelle, tarif: item.tarif, montant: item.montant, quantite: item.quantite});
+                });
+                res.json(collec);
+            }
+
+        })
+        .catch((error) => console.error(error));
+    }
+
 }
 
 export default ItemsController;
