@@ -3,10 +3,14 @@
 import * as Database from './Database.js';
 import Error from './Error.js';
 import uuid from 'uuid/v1.js';
+import bcrypt from 'bcrypt';
+
+import Tools from './Tools.js';
 
 
 const db = Database.connect();
 const table = 'commande';
+const saltRounds = 10;
 
 class CommandesController {
 
@@ -16,13 +20,20 @@ class CommandesController {
     static all(req, res) {
         db.select().table(table)
             .then((result) => {
-                let collec = {type: "collection", count: result.length, commandes: []};
+                if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+
+                let collec = {
+                    type: "collection",
+                    count: result.length,
+                    commandes: []
+                };
                 result.forEach(commande => {
                     collec.commandes.push({
                         id: commande.id,
                         mail_client: commande.mail,
-                        date_commande: new Date(commande.created_at).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year:'numeric'}),
-                        montant: commande.montant})
+                        date_commande: Tools.formatDateHour(commande.created_at),
+                        montant: commande.montant
+                    })
                 });
                 res.json(collec);
             })
@@ -45,7 +56,7 @@ class CommandesController {
                 collec.links.items = '/commandes/' + result.id + '/items';
                 collec.commande.push({
                     id: result.id,
-                    livraison: new Date(result.livraison).toLocaleString('fr-FR', {day: '2-digit', month: '2-digit', year:'numeric'}) + ' ' + new Date(result.livraison).toLocaleTimeString('fr-FR'),
+                    livraison: Tools.formatDateHour(result.livraison),
                     nom_client: result.nom,
                     mail_client: result.mail,
                     status: result.status,
@@ -71,17 +82,20 @@ class CommandesController {
      * Create
      */
     static create(req, res) {
+        const id = uuid(); // generate id
+        bcrypt.hash(id, saltRounds, function (err, token) {
 
-        const insertData = {
-            id: uuid(),
-            nom: req.body.nom,
-            mail: req.body.mail,
-            livraison: req.body.livraison,
-            created_at: new Date(),
-            updated_at: new Date()
-        };
+            const insertData = {
+                nom: req.body.nom,
+                mail: req.body.mail,
+                livraison: Tools.createDate(req.body.livraison.date, req.body.livraison.heure),
+                id: uuid(),
+                token: token,
+                montant: 0,
+                created_at: new Date()
+            };
 
-        db.insert(insertData).into(table)
+            db.insert(insertData).into(table)
             .then((result) => {
                 // res.redirect(201, '/commandes/' + insertData.id);
                 db.select()
@@ -91,11 +105,26 @@ class CommandesController {
                         // if no ressource catch
                         if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
                         // else
-                        res.status(201).location('/commandes/' + insertData.id).json(result);
+                        const newCommandeFormated = {
+                            commande: {
+                                nom: insertData.nom,
+                                mail: insertData.mail,
+                                livraison: {
+                                    date: Tools.formatDate(insertData.livraison),
+                                    heure: Tools.formatHour(insertData.livraison)
+                                },
+                                id: insertData.id,
+                                token: insertData.token,
+                                montant: insertData.montant,
+                                created_at: insertData.created_at
+                            }
+                        };
+                        res.status(201).location('/commandes/' + insertData.id).json(newCommandeFormated);
                     })
                     .catch((error) => res.status(500).json(Error.create(500, error)));
             })
             .catch((error) => res.status(500).json(Error.create(500, error)));
+        });
     }
 
     /*
@@ -124,7 +153,7 @@ class CommandesController {
                 db.select()
                     .table(table)
                     .where('id', req.params.id)
-                    .then((result) =>{
+                    .then((result) => {
                         res.status(201).location('/commandes/' + req.params.id).json(result);
                     })
             }).catch((error) => res.status(500).json(Error.create(500, error)));
