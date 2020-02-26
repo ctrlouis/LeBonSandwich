@@ -19,6 +19,7 @@ import { fileURLToPath } from 'url';
 
 import indexRouter      from './routes/indexRouter.js';
 import categorieRouter  from './routes/categorieRouter.js';
+import sandwichsRouter  from './routes/sandwichsRouter.js';
 import Error            from './controllers/Error.js';
 
 
@@ -48,6 +49,7 @@ app.use(bodyParser({ extended: false }));
  */
 app.use('/', indexRouter);
 app.use('/categories', categorieRouter);
+app.use('/sandwichs', sandwichsRouter);
 
 /* ERROR handler */
 app.all('/*', (req, res) => res.status(404).json(Error.create(404, "Method not allowed")));
