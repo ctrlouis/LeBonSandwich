@@ -36,14 +36,33 @@ class CommandesController {
         db.select()
             .table(table)
             .where('id', req.params.id)
+            .first()
             .then((result) => {
                 // if no ressource catch
-                if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-                let collec = {type: "ressource", commande: []};
-                result.forEach(cmd => {
-                    collec.commande.push({id: cmd.id, mail_client: cmd.mail, nom_client: cmd.nom, date_commande: cmd.created_at, date_livraison: cmd.livraison, montant: cmd.montant})
+                if (!result) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+                let collec = {type: "ressource", links: {}, commande: []};
+                collec.links.self = '/commandes/' + result.id + '/';
+                collec.links.items = '/commandes/' + result.id + '/items';
+                collec.commande.push({
+                    id: result.id,
+                    livraison: new Date(result.livraison).toLocaleString('fr-FR', {day: '2-digit', month: '2-digit', year:'numeric'}) + ' ' + new Date(result.livraison).toLocaleTimeString('fr-FR'),
+                    nom_client: result.nom,
+                    mail_client: result.mail,
+                    status: result.status,
+                    montant: result.montant,
                 });
-                res.json(collec);
+                db.select()
+                .table('item')
+                .where('command_id', req.params.id)
+                .then((result) => {
+                    let items = [];
+                    result.forEach((item, i) => {
+                      items.push({uri: item.uri, libelle: item.libelle, tarif: item.tarif, quantite: item.quantite});
+                    });
+                    collec.commande[0].items = items;
+                    res.status(200).json(collec)
+                })
+                .catch((error) => Error.create(500, error));
             })
             .catch((error) => console.error(error));
     }
