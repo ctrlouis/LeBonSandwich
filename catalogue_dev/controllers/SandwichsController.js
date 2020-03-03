@@ -14,8 +14,11 @@ class SandwichsController {
         const sandwichsId = req.params.id;
         ConnectionFactory.connect();
         SandwichModel.findOne({ref: sandwichsId}, function(err, sandwich){
-            if (err || !sandwich) res.status(404).send(Error.create(404, 'Ressource introuvable.'));
-            res.json(sandwich);
+            if (err || !sandwich)
+                res.status(404).send(Error.create(404, 'Ressource introuvable.'));
+            else
+                res.json(sandwich);
+
         });
     }
 }
