@@ -100,6 +100,19 @@ class ClientsController {
         });
     }
 
+    static calculAmount(id, amount) {
+        return new Promise((resolve, reject) => {
+            ClientsController.getClient('id', id)
+                .then((client) => {
+                    client.cumul_achats += amount;
+                    db(table).where('id', id).update(client)
+                        .then(result => resolve(result))
+                        .catch(err => reject(err));
+                })
+                .catch((err) => reject(err));
+        });
+    }
+
     static encryptPassword(password) {
         return new Promise((resolve, reject) => {
             bcrypt.hash(password, saltRounds, function(err, hash) {

@@ -7,6 +7,7 @@ import uuid from 'uuid/v1.js';
 import bcrypt from 'bcrypt';
 
 import Tools from './Tools.js';
+import ClientsController from './ClientsController.js';
 
 
 const db = Database.connect();
@@ -100,11 +101,14 @@ class CommandesController {
             axios.all(requests)
                 .then(axios.spread(function (...sandwichs) {
 
+                    const clientId = CommandesController.getClientIdByToken(req.body.client_token);
+
                     // new commande
                     const insertData = {
                         nom: req.body.nom,
                         mail: req.body.mail,
                         livraison: Tools.createDate(req.body.livraison.date, req.body.livraison.heure),
+                        client_id: clientId,
                         id: uuid(),
                         token: token,
                         created_at: new Date()
@@ -125,6 +129,11 @@ class CommandesController {
                     let amount = 0;
                     insertItems.forEach(item => amount += item.quantite * item.tarif);
                     insertData.montant = amount;
+
+                    if (clientId) {
+                        ClientsController.calculAmount(clientId, amount)
+                            .catch(err => console.error(err));
+                    }
 
                     // insert items
                     db.insert(insertItems).table('item')
@@ -199,6 +208,16 @@ class CommandesController {
                         res.status(201).location('/commandes/' + req.params.id).json(result);
                     })
             }).catch((error) => res.status(500).json(Error.create(500, error)));
+    }
+
+    // verify token and return user id if token is correct
+    static getClientIdByToken(token) {
+        if (!token) return null;
+
+        const clientToken = ClientsController.verifyToken(token);
+        if (!clientToken) return null;
+
+        return clientToken.id;
     }
 
     // check if token is true
