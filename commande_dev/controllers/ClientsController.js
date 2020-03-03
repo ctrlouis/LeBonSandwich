@@ -72,8 +72,9 @@ class ClientsController {
                             res.status(401).json(Error.create(401, "no authorization header present"))
                         }
                         // user is authentificated
-                        const token = ClientsController.generateToken({data: "motherfucker"});
-                        res.status(200).json(token);
+                        const token = ClientsController.generateToken({carte_nbr: client.id});
+                        const data = { token: token };
+                        res.status(200).json(data);
                     })
                     .catch(err => res.status(500).json(Error.create(401, err)))
             })
