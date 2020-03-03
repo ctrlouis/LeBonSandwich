@@ -133,12 +133,14 @@ class CommandesController {
 
                     db.insert(insertData).into(table)
                         .then((result) => {
+                            
                             db.select()
                                 .table(table)
                                 .where('id', insertData.id)
+                                .first()
                                 .then((result) => {
-                                    if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-                                    // create command
+                                    if (!result) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+
                                     const newCommandeFormated = {
                                         commande: {
                                             nom: insertData.nom,
@@ -150,7 +152,6 @@ class CommandesController {
                                             id: insertData.id,
                                             token: insertData.token,
                                             montant: insertData.montant,
-                                            created_at: insertData.created_at,
                                             items: items
                                         }
                                     };
@@ -166,11 +167,6 @@ class CommandesController {
                 .catch((err) => res.status(400).json(err));
                 // end of multiple get sandwich
         });
-    }
-
-    static getSandwichRequest(uri) {
-        const url = "http://api.catalogue:8080" + uri;
-        return axios.get(url);
     }
 
     /*
@@ -205,10 +201,12 @@ class CommandesController {
             }).catch((error) => res.status(500).json(Error.create(500, error)));
     }
 
+    // check if token is true
     static checkToken(givenToken, correctTokken) {
         return givenToken == correctTokken;
     }
 
+    // get token send in request
     static getToken(req) {
         if (req.query.token) {
             return req.query.token;
@@ -219,6 +217,12 @@ class CommandesController {
         }
 
         return null;
+    }
+
+    // generate sandwich uri
+    static getSandwichRequest(uri) {
+        const url = "http://api.catalogue:8080" + uri;
+        return axios.get(url);
     }
 
 }
