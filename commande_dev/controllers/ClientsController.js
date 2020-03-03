@@ -67,8 +67,7 @@ class ClientsController {
             .then((client) => {
                 ClientsController.verifyPassword(password, client.passwd)
                     .then((result) => {
-                        if(username != client.nom_client) 
-                        {
+                        if(username != client.nom_client) {
                             res.status(401).json(Error.create(401, "no authorization header present"))
                         }
                         // user is authentificated
