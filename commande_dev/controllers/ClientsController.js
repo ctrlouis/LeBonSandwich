@@ -25,7 +25,7 @@ class ClientsController {
     static id(req, res) {
         const auth = req.get('authorization');
         const token = auth.replace('Bearer ', "");
-
+        
         const verif = ClientsController.verifyToken(token);
         const id = Number(req.params.id);
         if (verif.id != id) {
