@@ -1,6 +1,7 @@
 "use strict";
 
 import * as Database from './Database.js';
+import bcrypt from 'bcrypt';
 import Error from './Error.js';
 
 
@@ -27,6 +28,36 @@ class ClientsController {
                 res.json(result[0]);
             })
             .catch((error) => console.error(error));
+    }
+
+    static create(req, res) {
+        ClientsController.encryptPassword(req.body.password)
+            .then((hashedPassword) => {
+                const newClient = {
+                    nom_client: req.body.name,
+                    mail_client: req.body.mail,
+                    passwd: hashedPassword,
+                    cumul_achats: 0
+                };
+                db.insert(newClient)
+                    .table(table)
+                    .then((result) => {
+                        res.json(newClient);
+                    })
+                    .catch((error) => res.status(500).json(Error.create(500, error)));
+            })
+            .catch((error) => res.status(500).json(Error.create(500, error)));
+        
+    }
+
+    static encryptPassword(password) {
+        const saltRounds = 10;
+        return new Promise((resolve, reject) => {
+            bcrypt.hash(password, saltRounds, function(err, hash) {
+                if (err) reject(err);
+                resolve(hash);
+            });
+        });
     }
 
 }
