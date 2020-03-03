@@ -258,9 +258,18 @@ class CommandesController {
             res.valid = false;
             res.error = 'Date de livraison invalide';
         }
-
+        //Check items listes
         if(dataset.items){
-
+            dataset.items.forEach((item, i) => {
+                if(!/^[1-9]+$/.test(item.q)){
+                    res.valid = false;
+                    res.error = item.uri + ' n\'a pas une quantité valide';
+                }
+                else if(!/^(\/sandwichs\/).*/.test(item.uri)){
+                    res.valid = false;
+                    res.error = item.uri + ' n\'est pas un lien valide';
+                }
+            });
         }
         else{
             res.valid = false;
