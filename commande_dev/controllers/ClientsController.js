@@ -33,6 +33,7 @@ class ClientsController {
             })
             .catch((error) => console.error(error));
     }
+    
 
     static create(req, res) {
         ClientsController.encryptPassword(req.body.password)
@@ -66,6 +67,10 @@ class ClientsController {
             .then((client) => {
                 ClientsController.verifyPassword(password, client.passwd)
                     .then((result) => {
+                        if(username != client.nom_client) 
+                        {
+                            res.status(401).json(Error.create(401, "unauthorized"))
+                        }
                         // user is authentificated
                         const token = ClientsController.generateToken({data: "motherfucker"});
                         res.status(200).json(token);
