@@ -34,19 +34,6 @@ class ClientsController {
             .catch((error) => console.error(error));
     }
     
-    static cliAuth(req, res) {
-        // db.select()
-        //     .table(table)
-        //     .where('id', req.params.id)
-        //     .then((result) => {
-        //         // if no ressource catch
-        //         if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-        //         res.json(result[0]);
-        //     })
-        //     .catch((error) => console.error(error));
-        res.json(req.get("authorization"));
-        }
-
 
     static create(req, res) {
         ClientsController.encryptPassword(req.body.password)
@@ -80,6 +67,10 @@ class ClientsController {
             .then((client) => {
                 ClientsController.verifyPassword(password, client.passwd)
                     .then((result) => {
+                        if(username != client.nom_client) 
+                        {
+                            res.status(401).json(Error.create(401, "unauthorized"))
+                        }
                         // user is authentificated
                         const token = ClientsController.generateToken({data: "motherfucker"});
                         res.status(200).json(token);
