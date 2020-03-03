@@ -29,6 +29,18 @@ class ClientsController {
             .catch((error) => console.error(error));
     }
 
+    static auth(req, res) {
+        db.select()
+            .table(table)
+            .where('id', req.params.id)
+            .then((result) => {
+                // if no ressource catch
+                if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+                res.json(result[0]);
+            })
+            .catch((error) => console.error(error));
+    }
+
 }
 
 export default ClientsController;
