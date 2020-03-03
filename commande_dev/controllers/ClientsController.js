@@ -69,7 +69,7 @@ class ClientsController {
                     .then((result) => {
                         if(username != client.nom_client) 
                         {
-                            res.status(401).json(Error.create(401, "unauthorized"))
+                            res.status(401).json(Error.create(401, "no authorization header present"))
                         }
                         // user is authentificated
                         const token = ClientsController.generateToken({data: "motherfucker"});
@@ -108,7 +108,7 @@ class ClientsController {
         return new Promise((resolve, reject) => {
             bcrypt.compare(password, hashedPass, function(err, result) {
                 if (err) reject(err);
-                if (!result) reject("Unauthorized"); // if password is false
+                if (!result) reject("no authorization header present"); // if password is false
                 resolve(result);
             });
         });
