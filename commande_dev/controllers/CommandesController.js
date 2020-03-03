@@ -90,8 +90,6 @@ class CommandesController {
             // get all used sandwichs
             axios.all(requests)
                 .then(axios.spread(function (...sandwichs) {
-                    let amount = 0;
-                    sandwichs.forEach(sandwich => amount += Number(sandwich.data.prix.$numberDecimal));
 
                     // new commande
                     const insertData = {
@@ -100,9 +98,29 @@ class CommandesController {
                         livraison: Tools.createDate(req.body.livraison.date, req.body.livraison.heure),
                         id: uuid(),
                         token: token,
-                        montant: amount,
                         created_at: new Date()
                     };
+
+                    let insertItems = [];
+                    sandwichs.forEach((sandwich) => {                        
+                        const quantity = req.body.items.find(e => e.uri == "/sandwichs/" + sandwich.data.ref); // get corresponding quantity
+                        insertItems.push({
+                            uri: '/sandwichs/' + sandwich.data.ref,
+                            libelle: sandwich.data.nom,
+                            tarif: sandwich.data.prix.$numberDecimal,
+                            quantite: quantity.q,
+                            command_id: insertData.id
+                        });
+                    });         
+                    
+                    let amount = 0;
+                    insertItems.forEach(item => amount += item.quantite * item.tarif);
+                    insertData.montant = amount;
+
+                    // insert items
+                    db.insert(insertItems).table('item')
+                        .then((res) => {})
+                        .catch((err) => console.log(err));
 
                     db.insert(insertData).into(table)
                         .then((result) => {
@@ -136,7 +154,7 @@ class CommandesController {
                         .catch((error) => res.status(500).json(Error.create(500, error)));
                         // end of insertion
                 }))
-                .catch((err) => res.json(err));
+                .catch((err) => res.status(400).json(err));
                 // end of multiple get sandwich
         });
     }
