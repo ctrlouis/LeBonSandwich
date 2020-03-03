@@ -4,7 +4,8 @@ import * as Database from './Database.js';
 import Error from './Error.js';
 import Pagination from './Pagination.js';
 import uuid from 'uuid/v1.js';
-
+import Tools from './Tools.js';
+import ItemsController from './ItemsController.js';
 
 const db = Database.connect();
 const table = 'commande';
@@ -71,27 +72,39 @@ class CommandesController {
      * Get by id
      */
     static id(req, res) {
+        // need to use get first
         db.select()
             .table(table)
             .where('id', req.params.id)
             .then((result) => {
                 // if no ressource catch
                 if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-                let collec = {
-                    type: "ressource",
-                    commande: []
-                };
-                result.forEach(cmd => {
-                    collec.commande.push({
-                        id: cmd.id,
-                        mail_client: cmd.mail,
-                        nom_client: cmd.nom,
-                        date_commande: cmd.created_at,
-                        date_livraison: cmd.livraison,
-                        montant: cmd.montant
-                    })
-                });
-                res.json(collec);
+
+                // get items and format them
+                ItemsController.command(result[0].id) // need to change how get command (get only one with first !)
+                    .then((items) => {
+                        const formatItems = ItemsController.format(items); // format items
+                        // format object
+                        let collec = {
+                            type: "ressource",
+                            date: Tools.formatDate(),
+                            commande: []
+                        };
+                        result.forEach(cmd => {
+                            collec.commande.push({
+                                id: cmd.id,
+                                created_at: Tools.formatDateHour(cmd.created_at),
+                                livraison: Tools.formatDateHour(cmd.livraison),
+                                nom: cmd.nom,
+                                mail: cmd.mail,
+                                montant: cmd.montant,
+                                items: formatItems
+                            })
+                        });
+                        res.json(collec); // send data
+                    }).catch((error) => {
+                        console.error(error);
+                    });
             })
             .catch((error) => console.error(error));
     }

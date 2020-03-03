@@ -2,11 +2,16 @@
 
 import * as Database from './Database.js';
 import Error from './Error.js';
+import axios from 'axios';
 import uuid from 'uuid/v1.js';
+import bcrypt from 'bcrypt';
+
+import Tools from './Tools.js';
 
 
 const db = Database.connect();
 const table = 'commande';
+const saltRounds = 10;
 
 class CommandesController {
 
@@ -16,9 +21,20 @@ class CommandesController {
     static all(req, res) {
         db.select().table(table)
             .then((result) => {
-                let collec = {type: "collection", count: result.length, commandes: []};
+                if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+
+                let collec = {
+                    type: "collection",
+                    count: result.length,
+                    commandes: []
+                };
                 result.forEach(commande => {
-                    collec.commandes.push({id: commande.id, mail_client: commande.mail, date_commande: commande.created_at, montant: commande.montant})
+                    collec.commandes.push({
+                        id: commande.id,
+                        mail_client: commande.mail,
+                        date_commande: Tools.formatDateHour(commande.created_at),
+                        montant: commande.montant
+                    })
                 });
                 res.json(collec);
             })
@@ -32,14 +48,39 @@ class CommandesController {
         db.select()
             .table(table)
             .where('id', req.params.id)
+            .first()
             .then((result) => {
                 // if no ressource catch
-                if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-                let collec = {type: "ressource", commande: []};
-                result.forEach(cmd => {
-                    collec.commande.push({id: cmd.id, mail_client: cmd.mail, nom_client: cmd.nom, date_commande: cmd.created_at, date_livraison: cmd.livraison, montant: cmd.montant})
+                if (!result) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+
+                const givenToken = CommandesController.getToken(req);
+                if (!CommandesController.checkToken(givenToken, result.token)) {
+                    res.status(401).json(Error.create(401, "Wrong access token " + givenToken));
+                }
+
+                let collec = {type: "ressource", links: {}, commande: []};
+                collec.links.self = '/commandes/' + result.id + '/';
+                collec.links.items = '/commandes/' + result.id + '/items';
+                collec.commande.push({
+                    id: result.id,
+                    livraison: Tools.formatDateHour(result.livraison),
+                    nom_client: result.nom,
+                    mail_client: result.mail,
+                    status: result.status,
+                    montant: result.montant,
                 });
-                res.json(collec);
+                db.select()
+                .table('item')
+                .where('command_id', req.params.id)
+                .then((result) => {
+                    let items = [];
+                    result.forEach((item, i) => {
+                      items.push({uri: item.uri, libelle: item.libelle, tarif: item.tarif, quantite: item.quantite});
+                    });
+                    collec.commande[0].items = items;
+                    res.status(200).json(collec)
+                })
+                .catch((error) => Error.create(500, error));
             })
             .catch((error) => console.error(error));
     }
@@ -48,31 +89,84 @@ class CommandesController {
      * Create
      */
     static create(req, res) {
+        const id = uuid(); // generate id
+        bcrypt.hash(id, saltRounds, function (err, token) {
 
-        const insertData = {
-            id: uuid(),
-            nom: req.body.nom,
-            mail: req.body.mail,
-            livraison: req.body.livraison,
-            created_at: new Date(),
-            updated_at: new Date()
-        };
+            const items = req.body.items;
+            const requests = [];
+            items.forEach(item => requests.push(CommandesController.getSandwichRequest(item.uri)));
 
-        db.insert(insertData).into(table)
-            .then((result) => {
-                // res.redirect(201, '/commandes/' + insertData.id);
-                db.select()
-                    .table(table)
-                    .where('id', insertData.id)
-                    .then((result) => {
-                        // if no ressource catch
-                        if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-                        // else
-                        res.status(201).location('/commandes/' + insertData.id).json(result);
-                    })
-                    .catch((error) => res.status(500).json(Error.create(500, error)));
-            })
-            .catch((error) => res.status(500).json(Error.create(500, error)));
+            // get all used sandwichs
+            axios.all(requests)
+                .then(axios.spread(function (...sandwichs) {
+
+                    // new commande
+                    const insertData = {
+                        nom: req.body.nom,
+                        mail: req.body.mail,
+                        livraison: Tools.createDate(req.body.livraison.date, req.body.livraison.heure),
+                        id: uuid(),
+                        token: token,
+                        created_at: new Date()
+                    };
+
+                    let insertItems = [];
+                    sandwichs.forEach((sandwich) => {                        
+                        const quantity = req.body.items.find(e => e.uri == "/sandwichs/" + sandwich.data.ref); // get corresponding quantity
+                        insertItems.push({
+                            uri: '/sandwichs/' + sandwich.data.ref,
+                            libelle: sandwich.data.nom,
+                            tarif: sandwich.data.prix.$numberDecimal,
+                            quantite: quantity.q,
+                            command_id: insertData.id
+                        });
+                    });         
+                    
+                    let amount = 0;
+                    insertItems.forEach(item => amount += item.quantite * item.tarif);
+                    insertData.montant = amount;
+
+                    // insert items
+                    db.insert(insertItems).table('item')
+                        .then((res) => {})
+                        .catch((err) => console.log(err));
+
+                    db.insert(insertData).into(table)
+                        .then((result) => {
+                            
+                            db.select()
+                                .table(table)
+                                .where('id', insertData.id)
+                                .first()
+                                .then((result) => {
+                                    if (!result) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+
+                                    const newCommandeFormated = {
+                                        commande: {
+                                            nom: insertData.nom,
+                                            mail: insertData.mail,
+                                            livraison: {
+                                                date: Tools.formatDate(insertData.livraison),
+                                                heure: Tools.formatHour(insertData.livraison)
+                                            },
+                                            id: insertData.id,
+                                            token: insertData.token,
+                                            montant: insertData.montant,
+                                            items: items
+                                        }
+                                    };
+
+                                    res.status(201).location('/commandes/' + insertData.id).json(newCommandeFormated);
+                                })
+                                .catch((error) => res.status(500).json(Error.create(500, error)));
+                                // end of selection to return value
+                        })
+                        .catch((error) => res.status(500).json(Error.create(500, error)));
+                        // end of insertion
+                }))
+                .catch((err) => res.status(400).json(err));
+                // end of multiple get sandwich
+        });
     }
 
     /*
@@ -101,10 +195,34 @@ class CommandesController {
                 db.select()
                     .table(table)
                     .where('id', req.params.id)
-                    .then((result) =>{
+                    .then((result) => {
                         res.status(201).location('/commandes/' + req.params.id).json(result);
                     })
             }).catch((error) => res.status(500).json(Error.create(500, error)));
+    }
+
+    // check if token is true
+    static checkToken(givenToken, correctTokken) {
+        return givenToken == correctTokken;
+    }
+
+    // get token send in request
+    static getToken(req) {
+        if (req.query.token) {
+            return req.query.token;
+        }
+
+        if (req.headers.token) {
+            return req.headers.token;
+        }
+
+        return null;
+    }
+
+    // generate sandwich uri
+    static getSandwichRequest(uri) {
+        const url = "http://api.catalogue:8080" + uri;
+        return axios.get(url);
     }
 
 }
