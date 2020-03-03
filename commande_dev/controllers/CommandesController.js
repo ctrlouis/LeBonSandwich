@@ -113,7 +113,7 @@ class CommandesController {
                         const insertData = {
                             nom: req.body.nom,
                             mail: req.body.mail,
-                            livraison: Tools.createDate(req.body.livraison.date, req.body.livraison.heure),
+                            livraison: new Date(req.body.livraison.date + ' ' + req.body.livraison.heure),
                             client_id: clientId,
                             id: uuid(),
                             token: token,

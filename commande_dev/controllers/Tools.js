@@ -23,12 +23,6 @@ class Tools {
         return Tools.formatDate(date) + " " + Tools.formatHour(date);
     }
 
-    static createDate(date, time) {
-        const usableDate = date.split('-');
-        const usableTime = time.split(':');
-        return new Date(usableDate[2], usableDate[1], usableDate[0],usableTime[0], usableTime[1]);
-    }
-
 }
 
 export default Tools;
