@@ -47,7 +47,6 @@ class ClientsController {
                     .catch((error) => res.status(500).json(Error.create(500, error)));
             })
             .catch((error) => res.status(500).json(Error.create(500, error)));
-        
     }
 
     static encryptPassword(password) {
