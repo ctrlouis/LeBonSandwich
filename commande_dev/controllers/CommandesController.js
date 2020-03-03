@@ -52,6 +52,12 @@ class CommandesController {
             .then((result) => {
                 // if no ressource catch
                 if (!result) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+
+                const givenToken = CommandesController.getToken(req);
+                if (!CommandesController.checkToken(givenToken, result.token)) {
+                    res.status(401).json(Error.create(401, "Wrong access token " + givenToken));
+                }
+
                 let collec = {type: "ressource", links: {}, commande: []};
                 collec.links.self = '/commandes/' + result.id + '/';
                 collec.links.items = '/commandes/' + result.id + '/items';
