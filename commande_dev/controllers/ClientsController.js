@@ -23,19 +23,24 @@ class ClientsController {
     }
 
     static id(req, res) {
-        db.select()
-            .table(table)
-            .where('id', req.params.id)
-            .then((result) => {
-                // if no ressource catch
-                if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
-                res.json(result[0]);
+        const auth = req.get('authorization');
+        const token = auth.replace('Bearer ', "");
+
+        const verif = ClientsController.verifyToken(token);
+        const id = Number(req.params.id);
+        if (verif.id != id) {
+            res.status(401).json(Error.create(401, "unauthorized"));
+        }
+
+        ClientsController.getClient('id', id)
+            .then(client => {
+                res.status(200).json(client);
             })
-            .catch((error) => console.error(error));
+            .catch(err => res.status(401).json(Error.create(401, err)));
     }
     
 
-    static create(req, res) {
+    static create(req, res) { 
         ClientsController.encryptPassword(req.body.password)
             .then((hashedPassword) => {
                 const newClient = {
@@ -68,10 +73,10 @@ class ClientsController {
                 ClientsController.verifyPassword(password, client.passwd)
                     .then((result) => {
                         if(username != client.nom_client) {
-                            res.status(401).json(Error.create(401, "no authorization header present"))
+                            res.status(500).json(Error.create(500, "no authorization header present"))
                         }
                         // user is authentificated
-                        const token = ClientsController.generateToken({carte_nbr: client.id});
+                        const token = ClientsController.generateToken({id: client.id});
                         const data = { token: token };
                         res.status(200).json(data);
                     })
@@ -116,6 +121,10 @@ class ClientsController {
 
     static generateToken(data) {
         return jwt.sign(data, privateJwtKey);
+    }
+
+    static verifyToken(token) {
+        return jwt.verify(token, privateJwtKey);
     }
 
 }
