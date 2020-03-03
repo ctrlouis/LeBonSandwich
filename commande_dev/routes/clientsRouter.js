@@ -8,10 +8,10 @@ const router = express.Router();
 
 
 /* GET commandes listing. */
-router.get('/',     ClientsController.all);
+// router.get('/',     ClientsController.all);
 
 /* GET commande by given id. */
-router.get('/:id',  ClientsController.id);
+// router.get('/:id',  ClientsController.id);
 
 /* GET commande by given id. */
 router.post('/',    ClientsController.create);
