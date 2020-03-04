@@ -19,7 +19,7 @@ class ClientsController {
             .then((result) => {
                 res.json(result);
             })
-            .catch((error) => res.status(500).json(Error.create(500, error)));
+            .catch((err) => Error.send(res, 500));
     }
 
     static id(req, res) {
@@ -29,34 +29,33 @@ class ClientsController {
         const verif = ClientsController.verifyToken(token);
         const id = Number(req.params.id);
         if (verif.id != id) {
-            res.status(401).json(Error.create(401, "unauthorized"));
+            Error.send(res, 401); // unautorized
         }
 
         ClientsController.getClient('id', id)
             .then(client => {
-                res.status(200).json(client);
+                res.status(200).json(client); // success
             })
-            .catch(err => res.status(401).json(Error.create(401, err)));
+            .catch(err => Error.send(res, 404)); // client not found
     }
     
 
     static create(req, res) { 
         ClientsController.encryptPassword(req.body.password)
-            .then((hashedPassword) => {
-                const newClient = {
-                    nom_client: req.body.name,
-                    mail_client: req.body.mail,
-                    passwd: hashedPassword,
-                    cumul_achats: 0
-                };
-                db.insert(newClient)
-                    .table(table)
-                    .then((result) => {
-                        res.json(newClient);
-                    })
-                    .catch((error) => res.status(500).json(Error.create(500, error)));
+        .then((hashedPassword) => {
+            const newClient = {
+                nom_client: req.body.name,
+                mail_client: req.body.mail,
+                passwd: hashedPassword,
+                cumul_achats: 0
+            };
+            db.insert(newClient).table(table)
+            .then((result) => {
+                res.json(newClient); // success
             })
-            .catch((error) => res.status(500).json(Error.create(500, error)));
+            .catch((error) => Error.send(res, 500)); // error during insertion
+        })
+        .catch((error) => Error.send(res, 500)); // error during hashing password
     }
 
     static login(req, res) {
@@ -64,25 +63,26 @@ class ClientsController {
         const auth = req.get('authorization');
         var credentials = new Buffer(auth.split(" ").pop(), "base64").toString("ascii").split(":"); // decrypt base 64 authorization
 
+
         const id = req.params.id;
         const username = credentials[0];
         const password = credentials[1];
 
         ClientsController.getClient('id', id)
-            .then((client) => {
-                ClientsController.verifyPassword(password, client.passwd)
-                    .then((result) => {
-                        if(username != client.nom_client) {
-                            res.status(500).json(Error.create(500, "no authorization header present"))
-                        }
-                        // user is authentificated
-                        const token = ClientsController.generateToken({id: client.id});
-                        const data = { token: token };
-                        res.status(200).json(data);
-                    })
-                    .catch(err => res.status(500).json(Error.create(401, err)))
+        .then((client) => {
+            ClientsController.verifyPassword(password, client.passwd)
+            .then((result) => {
+                if(username != client.nom_client) {
+                    Error.send(res, 401, "No authorization header present");
+                }
+                // user is authentificated
+                const token = ClientsController.generateToken({id: client.id});
+                const data = { token: token };
+                res.status(200).json(data);
             })
-            .catch((error) => res.status(500).json(Error.create(500, error)));
+            .catch(err => Error.send(res, 401, "Bad")); // error during password verification
+        })
+        .catch(err => Error.send(res, 500)); // error during
     }
 
     static getClient(attribut, compareAttr) {
@@ -93,7 +93,7 @@ class ClientsController {
                 .first()
                 .then((client) => {
                     // if no ressource catch
-                    if (!client) reject("Ressource not available: " + req.originalUrl);
+                    if (!client) reject();
                     resolve(client);
                 })
                 .catch((error) => reject (error));
