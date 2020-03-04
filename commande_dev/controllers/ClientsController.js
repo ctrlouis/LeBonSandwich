@@ -61,28 +61,28 @@ class ClientsController {
     static login(req, res) {
 
         const auth = req.get('authorization');
-        var credentials = new Buffer(auth.split(" ").pop(), "base64").toString("ascii").split(":"); // decrypt base 64 authorization
+        if (!auth) Error.send(res, 401, "No authorization header present"); // error during reading authorization header
 
+        const credentials = new Buffer(auth.split(" ").pop(), "base64").toString("ascii").split(":"); // decrypt base 64 authorization
 
         const id = req.params.id;
         const username = credentials[0];
         const password = credentials[1];
 
-        ClientsController.getClient('id', id)
+        ClientsController.getClient('id', id) // get client data
         .then((client) => {
+
+            if(username !== client.nom_client) reject(); // error username incorrect
             ClientsController.verifyPassword(password, client.passwd)
-            .then((result) => {
-                if(username != client.nom_client) {
-                    Error.send(res, 401, "No authorization header present");
-                }
-                // user is authentificated
+            .then((result) => { // user is authentificated
+
                 const token = ClientsController.generateToken({id: client.id});
                 const data = { token: token };
                 res.status(200).json(data);
-            })
-            .catch(err => Error.send(res, 401, "Bad")); // error during password verification
-        })
-        .catch(err => Error.send(res, 500)); // error during
+
+            }).catch(err => Error.send(res, 401, "Wrong user/password")); // error password incorrect
+            
+        }).catch(err => Error.send(res, 500)); // error during client data retrieved
     }
 
     static getClient(attribut, compareAttr) {
@@ -125,9 +125,9 @@ class ClientsController {
     static verifyPassword(password, hashedPass) {
         return new Promise((resolve, reject) => {
             bcrypt.compare(password, hashedPass, function(err, result) {
-                if (err) reject(err);
-                if (!result) reject("no authorization header present"); // if password is false
-                resolve(result);
+                if (err) reject(); // error occured
+                if (!result) reject(); // if password is false
+                resolve(true); // password match
             });
         });
     }
