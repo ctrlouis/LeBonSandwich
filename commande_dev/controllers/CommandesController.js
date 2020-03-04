@@ -21,25 +21,25 @@ class CommandesController {
      */
     static all(req, res) {
         db.select().table(table)
-            .then((result) => {
-                if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+        .then((result) => {
+            if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
 
-                let collec = {
-                    type: "collection",
-                    count: result.length,
-                    commandes: []
-                };
-                result.forEach(commande => {
-                    collec.commandes.push({
-                        id: commande.id,
-                        mail_client: commande.mail,
-                        date_commande: Tools.formatDateHour(commande.created_at),
-                        montant: commande.montant
-                    })
-                });
-                res.json(collec);
-            })
-            .catch((error) => res.status(500).json(Error.create(500, error)));
+            let collec = {
+                type: "collection",
+                count: result.length,
+                commandes: []
+            };
+            result.forEach(commande => {
+                collec.commandes.push({
+                    id: commande.id,
+                    mail_client: commande.mail,
+                    date_commande: Tools.formatDateHour(commande.created_at),
+                    montant: commande.montant
+                })
+            });
+            res.json(collec);
+        })
+        .catch((error) => res.status(500).json(Error.create(500, error)));
     }
 
     /*
