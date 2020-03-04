@@ -22,7 +22,7 @@ class CommandesController {
     static all(req, res) {
         db.select().table(table)
         .then((result) => {
-            if (result <= 0) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+            if (result <= 0) Error.send(res, 404, "Ressource not available: " + req.originalUrl);
 
             let collec = {
                 type: "collection",
@@ -39,51 +39,45 @@ class CommandesController {
             });
             res.json(collec);
         })
-        .catch((error) => res.status(500).json(Error.create(500, error)));
+        .catch((error) => Error.send(res, 500));
     }
 
     /*
      * Get by id
      */
     static id(req, res) {
-        db.select()
-            .table(table)
-            .where('id', req.params.id)
-            .first()
+        db.select().table(table).where('id', req.params.id).first()
+        .then((result) => {
+            if (!result) Error.send(res, 404, "Ressource not available: " + req.originalUrl); // error if no ressource catch
+
+            const givenToken = CommandesController.getToken(req);
+            if (!CommandesController.checkToken(givenToken, result.token)) {
+                Error.send(res, 401, "Wrong access token : " + givenToken);
+            }
+
+            // create command object
+            let command = {type: "ressource", links: {}, command: {}};
+            command.links.self = '/commandes/' + result.id + '/';
+            command.links.items = '/commandes/' + result.id + '/items';
+            command.command = {
+                id: result.id,
+                livraison: Tools.formatDateHour(result.livraison),
+                nom_client: result.nom,
+                mail_client: result.mail,
+                status: result.status,
+                montant: result.montant,
+            };
+
+            db.select().table('item').where('command_id', req.params.id)
             .then((result) => {
-                // if no ressource catch
-                if (!result) res.status(404).json(Error.create(404, "Ressource not available: " + req.originalUrl));
+                let items = [];
+                result.forEach(item => items.push({uri: item.uri, libelle: item.libelle, tarif: item.tarif, quantite: item.quantite}));
+                command.command.items = items;
+                res.status(200).json(command); // success
 
-                const givenToken = CommandesController.getToken(req);
-                if (!CommandesController.checkToken(givenToken, result.token)) {
-                    res.status(401).json(Error.create(401, "Wrong access token " + givenToken));
-                }
+            }).catch(err => Error.send(res, 500)); // error during recover items related to command
 
-                let collec = {type: "ressource", links: {}, commande: []};
-                collec.links.self = '/commandes/' + result.id + '/';
-                collec.links.items = '/commandes/' + result.id + '/items';
-                collec.commande.push({
-                    id: result.id,
-                    livraison: Tools.formatDateHour(result.livraison),
-                    nom_client: result.nom,
-                    mail_client: result.mail,
-                    status: result.status,
-                    montant: result.montant,
-                });
-                db.select()
-                .table('item')
-                .where('command_id', req.params.id)
-                .then((result) => {
-                    let items = [];
-                    result.forEach((item, i) => {
-                      items.push({uri: item.uri, libelle: item.libelle, tarif: item.tarif, quantite: item.quantite});
-                    });
-                    collec.commande[0].items = items;
-                    res.status(200).json(collec)
-                })
-                .catch((error) => Error.create(500, error));
-            })
-            .catch((error) => console.error(error));
+        }).catch(err => Error.send(res, 500)); // error during recover command data
     }
 
     /*
