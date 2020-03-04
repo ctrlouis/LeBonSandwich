@@ -3,10 +3,6 @@
 
 const errorMessage = [
     {
-        code: 404,
-        message: "Method not allowed"
-    },
-    {
         code: 401,
         message: "Unauthorized: require authentification"
     },
@@ -15,11 +11,16 @@ const errorMessage = [
         message: "Ressource not available"
     },
     {
+        code: 405,
+        message: "Method not allowed"
+    },
+    {
         code: 500,
         message: "Internal Server Error"
     }
 ];
 const defaultMessage = "An error has occured";
+
 class Error {
 
     // send error
