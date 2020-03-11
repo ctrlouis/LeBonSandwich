@@ -17,9 +17,9 @@ router.get('/:id',          ClientsController.id);
 router.post('/',            ClientsController.create);
 
 /* POST client authentification */
-router.post('/:id/auth',   ClientsController.login);
+router.post('/:id/auth',    ClientsController.login);
 
 /* Error handler */
-router.all('/*',    (req, res) => res.status(405).json(Error.create(405, "Method not allowed")));
+router.all('/*', (req, res) => Error.send(res, 405));
 
 export default router;

@@ -54,7 +54,7 @@ app.use('/commandes', commandesRouter);
 app.use('/items', itemsRouter);
 
 /* ERROR handler */
-app.all('/*', (req, res) => res.status(404).json(Error.create(404, "Method not allowed")));
+app.all('/*', (req, res) => Error.send(res, 405));
 
 app.listen(expressPort, () => {
     console.log("Server up and running at localhost: " + expressPort);
