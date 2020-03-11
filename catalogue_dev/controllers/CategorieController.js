@@ -4,6 +4,7 @@ import Error from './Error.js';
 import uuid from 'uuid/v1.js';
 import {CategorieSchema, CategorieModel} from '../schema/CategorieSchema.js';
 import ConnectionFactory from './ConnectionFactory.js';
+import Tools from './Tools.js';
 
 class CategorieController {
 
@@ -24,7 +25,7 @@ class CategorieController {
     static id(req, res) {
         let objet = {
             type: "ressource",
-            date: new Date().toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year:'numeric'}),
+            date: Tools.formatDate(),
             categorie: {},
             links: {}
         };
