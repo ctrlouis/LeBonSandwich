@@ -3,6 +3,7 @@
 import Error from './Error.js';
 import uuid from 'uuid/v1.js';
 import {CategorieSchema, CategorieModel} from '../schema/CategorieSchema.js';
+import {SandwichSchema, SandwichModel} from '../schema/SandwichSchema.js';
 import ConnectionFactory from './ConnectionFactory.js';
 import Tools from './Tools.js';
 
@@ -78,6 +79,29 @@ class CategorieController {
                     res.json(categorie);
             })
         });
+    }
+
+    static getSandwichs(req, res){
+      const categorieName = req.params.name;
+      ConnectionFactory.connect();
+      SandwichModel.find({categories: categorieName}, function(err, sandwichs){
+          if (err || !sandwichs)
+              res.status(404).send(Error.create(404, 'Ressource introuvable.'));
+          else{
+            let collec = {
+              type: 'collection',
+              date: Tools.formatDateHour(),
+              count: sandwichs.length,
+              categorie: categorieName,
+              sandwichs: []
+            }
+            sandwichs.forEach((item, i) => {
+              collec.sandwichs.push(item);
+            });
+            res.json(collec);
+          }
+
+      });
     }
 }
 

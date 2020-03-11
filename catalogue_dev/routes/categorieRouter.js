@@ -13,6 +13,9 @@ router.get('/',     CategorieController.all);
 /* GET categorie by given id. */
 router.get('/:id',  CategorieController.id);
 
+/* GET sandwichs of a categorie. */
+router.get('/:name/sandwichs',  CategorieController.getSandwichs);
+
 /* POST create categorie */
 router.post('/',    CategorieController.create);
 
