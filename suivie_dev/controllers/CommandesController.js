@@ -21,51 +21,55 @@ class CommandesController {
         countQuery = CommandesController.filter(req, countQuery);
 
         countQuery.then((rowNumber) => {
+            if(Number(req.query.s) != 'NaN'){
+                const pagination = CommandesController.pagination(req, rowNumber[0].count);
 
-            const pagination = CommandesController.pagination(req, rowNumber[0].count);
+                let query = db.select('*').from(table)
+                    .limit(pagination.size)
+                    .offset(pagination.queryOffset);
 
-            let query = db.select('*').from(table)
-                .limit(pagination.size)
-                .offset(pagination.queryOffset);
+                query = CommandesController.filter(req, query);
 
-            query = CommandesController.filter(req, query);
+                query.then((result) => {
 
-            query.then((result) => {
+                        // init collection with meta data
+                        let collection = {
+                            type: "collection",
+                            count: rowNumber[0].count,
+                            size: pagination.size,
+                            commandes: []
+                        }
 
-                    // init collection with meta data
-                    let collection = {
-                        type: "collection",
-                        count: rowNumber[0].count,
-                        size: pagination.size,
-                        commandes: []
-                    }
+                        // add pagination metadata
+                        collection.links = Pagination.getLinks(pagination, "/commandes");
 
-                    // add pagination metadata
-                    collection.links = Pagination.getLinks(pagination, "/commands");
-
-                    // add data into collection
-                    result.forEach((commande) => {
-                        collection.commandes.push({
-                            command: {
-                                id: commande.id,
-                                nom: commande.nom,
-                                create_at: commande.create_at,
-                                livraison: commande.livraison.toLocaleDateString('fr-FR', ) + " " + commande.livraison.toLocaleTimeString('fr-FR', ),
-                                status: commande.status
-                            },
-                            links: {
-                                self: {
-                                    href: "/commandes/" + commande.id
+                        // add data into collection
+                        result.forEach((commande) => {
+                            collection.commandes.push({
+                                command: {
+                                    id: commande.id,
+                                    nom: commande.nom,
+                                    create_at: commande.create_at,
+                                    livraison: commande.livraison.toLocaleDateString('fr-FR', ) + " " + commande.livraison.toLocaleTimeString('fr-FR', ),
+                                    status: commande.status
+                                },
+                                links: {
+                                    self: {
+                                        href: "/commandes/" + commande.id
+                                    }
                                 }
-                            }
+                            });
                         });
-                    });
 
-                    // return collection
-                    res.json(collection);
-                })
-                .catch((error) => res.status(500).json(Error.create(500, error)));
-        });
+                        // return collection
+                        res.json(collection);
+                    })
+            }
+            else{
+                res.status(403).json(Error.create(403, 'Invalid parameter'));
+            }
+        })
+        .catch((error) => res.status(500).json(Error.create(500, error)));
     }
 
     /*
