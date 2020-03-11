@@ -16,58 +16,68 @@ class CommandesController {
      * Get all
      */
     static all(req, res) {
-        let countQuery = db.table(table).count('id as count');
+        let countQuery;
+        const status = Number(req.query.s);
 
-        countQuery = CommandesController.filter(req, countQuery);
+        if(status){
+          countQuery = db.table(table).where('status', status).count('id as count');
+        }
+        else{
+          countQuery = db.table(table).count('id as count');
+        }
 
         countQuery.then((rowNumber) => {
-            if(Number(req.query.s) != 'NaN'){
-                const pagination = CommandesController.pagination(req, rowNumber[0].count);
+              const pagination = CommandesController.pagination(req, rowNumber[0].count);
+              let query;
 
-                let query = db.select('*').from(table)
+              if(status){
+                query = db.select('*').from(table)
+                    .where('status', req.query.s)
                     .limit(pagination.size)
                     .offset(pagination.queryOffset);
+              }
+              else{
+                query = db.select('*').from(table)
+                    .limit(pagination.size)
+                    .offset(pagination.queryOffset);
+              }
 
-                query = CommandesController.filter(req, query);
+              console.log(pagination);
 
-                query.then((result) => {
+              query.then((result) => {
 
-                        // init collection with meta data
-                        let collection = {
-                            type: "collection",
-                            count: rowNumber[0].count,
-                            size: pagination.size,
-                            commandes: []
-                        }
+                  // init collection with meta data
+                  let collection = {
+                      type: "collection",
+                      count: rowNumber[0].count,
+                      size: pagination.size,
+                      commandes: []
+                  }
 
-                        // add pagination metadata
-                        collection.links = Pagination.getLinks(pagination, "/commandes");
+                  // add pagination metadata
+                  collection.links = Pagination.getLinks(pagination, "/commandes");
 
-                        // add data into collection
-                        result.forEach((commande) => {
-                            collection.commandes.push({
-                                command: {
-                                    id: commande.id,
-                                    nom: commande.nom,
-                                    create_at: commande.create_at,
-                                    livraison: commande.livraison.toLocaleDateString('fr-FR', ) + " " + commande.livraison.toLocaleTimeString('fr-FR', ),
-                                    status: commande.status
-                                },
-                                links: {
-                                    self: {
-                                        href: "/commandes/" + commande.id
-                                    }
-                                }
-                            });
-                        });
+                  // add data into collection
+                  result.forEach((commande) => {
+                      collection.commandes.push({
+                          command: {
+                              id: commande.id,
+                              nom: commande.nom,
+                              create_at: commande.create_at,
+                              livraison: Tools.formatDateHour(commande.livraison),
+                              status: commande.status
+                          },
+                          links: {
+                              self: {
+                                  href: "/commandes/" + commande.id
+                              }
+                          }
+                      });
+                  });
 
-                        // return collection
-                        res.json(collection);
-                    })
-            }
-            else{
-                res.status(403).json(Error.create(403, 'Invalid parameter'));
-            }
+                  // return collection
+                  res.json(collection);
+              })
         })
         .catch((error) => res.status(500).json(Error.create(500, error)));
     }
@@ -111,16 +121,6 @@ class CommandesController {
                     });
             })
             .catch((error) => console.error(error));
-    }
-
-
-    static filter(req, query) {
-        // filter by status value
-        if (req.query.s) {
-            query.where('status', req.query.s);
-        }
-
-        return query;
     }
 
     static pagination(req, rowNumber) {
