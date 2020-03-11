@@ -15,7 +15,13 @@ class CategorieController {
         ConnectionFactory.connect();
         CategorieModel.find({}, function(err, categories) {
             if (err) return handleError(err);
-            res.json(categories);
+            let collection = {
+              type: 'collection',
+              date: Tools.formatDate(),
+              count: categories.length,
+              categories: categories
+            }
+            res.json(collection);
         });
     }
 
