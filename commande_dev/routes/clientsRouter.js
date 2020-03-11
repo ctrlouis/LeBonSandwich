@@ -20,6 +20,6 @@ router.post('/',            ClientsController.create);
 router.post('/:id/auth',    ClientsController.login);
 
 /* Error handler */
-router.all('/*', (req, res) => Error.send(res, 404));
+router.all('/*', (req, res) => Error.send(res, 405));
 
 export default router;

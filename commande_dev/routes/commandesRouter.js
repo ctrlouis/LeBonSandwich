@@ -24,6 +24,6 @@ router.post('/',    CommandesController.create);
 router.put('/:id',  CommandesController.update);
 
 /* Error handler */
-router.all('/*',    (req, res) => Error.send(405));
+router.all('/*',    (req, res) => Error.send(res, 405));
 
 export default router;
