@@ -17,6 +17,6 @@ router.get('/:id',  CategorieController.id);
 router.post('/',    CategorieController.create);
 
 /* Error handler */
-router.all('/*',    (req, res) => res.status(405).json(Error.create(405, "Method not allowed")));
+router.all('/*', (req, res) => Error.send(405));
 
 export default router;
