@@ -8,6 +8,27 @@ import ConnectionFactory from './ConnectionFactory.js';
 class SandwichsController {
 
     /*
+     * Get all
+     */
+    static all(req, res) {
+        ConnectionFactory.connect();
+        SandwichModel.find({}, function(err, sandwich){
+            if (err || !sandwich)
+                res.status(404).send(Error.create(404, 'Ressource introuvable.'));
+            else{
+                // init collection with meta data
+                let collection = {
+                    type: "collection",
+                    count: sandwich.length,
+                    sandwichs: sandwich
+                }
+                res.json(collection);
+            }
+
+        });
+    }
+
+    /*
      * Get by id
      */
     static id(req, res) {

@@ -8,7 +8,10 @@ import Error from './../controllers/Error.js';
 
 const router = express.Router();
 
-/* GET categorie by given id. */
+/* GET sandwichs by given id. */
+router.get('/',  SandwichsController.all);
+
+/* GET sandwichs by given id. */
 router.get('/:id',  SandwichsController.id);
 
 /* Error handler */
