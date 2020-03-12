@@ -13,6 +13,9 @@ router.get('/',     CommandesController.all);
 /* GET commande by given id. */
 router.get('/:id',  CommandesController.id);
 
+/* PATCH commande to change status */
+router.patch('/:id',  CommandesController.changeStatus);
+
 /* Error handler */
 router.all('/*', (req, res) => Error.send(res, 405));
 

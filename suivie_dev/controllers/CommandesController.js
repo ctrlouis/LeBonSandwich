@@ -112,6 +112,7 @@ class CommandesController {
                                 nom: cmd.nom,
                                 mail: cmd.mail,
                                 montant: cmd.montant,
+                                status: cmd.status,
                                 items: formatItems
                             })
                         });
@@ -123,10 +124,37 @@ class CommandesController {
             .catch((error) => console.error(error));
     }
 
+    /*
+     * Generate pagination for result on all commands get
+     * @param, rowNumber number of result
+     */
     static pagination(req, rowNumber) {
         let pageSize = Pagination.getPageSize(req); // verify and get page size
         let pagination = Pagination.getPage(req, rowNumber, pageSize); // get row of page
         return pagination;
+    }
+
+    /*
+     * Change status of a commande
+     */
+    static changeStatus(req, res){
+        db.select()
+            .table(table)
+            .where('id', req.params.id)
+            .update({
+                status: req.body.status
+            })
+            .then((result) => {
+                if (result <= 0) res.status(404).json(Error.create(404, "Ressource not updated: " + req.originalUrl));
+                db.select()
+                    .table(table)
+                    .where('id', req.params.id)
+                    .first()
+                    .then((result) => {
+                        let response = {id: result.id, livraison: Tools.formatDateHour(result.livraison), montant: result.montant, nom: result.nom, mail: result.mail, status: result.status};
+                        res.status(201).location('/commandes/' + req.params.id).json(response);
+                    })
+            }).catch((error) => res.status(500).json(Error.create(500, error)));
     }
 
 }
