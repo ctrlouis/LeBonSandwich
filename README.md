@@ -1,6 +1,8 @@
 # API LeBonSandwich
 
 Groupe: Allan Izzi, Louis Bertschy, Victor Bour.
+Lien vers le github : https://github.com/ctrlouis/LeBonSandwich
+Api doc: https://documenter.getpostman.com/view/10811943/SzS8s5PD?version=latest
 
 ## Mise en route
 
